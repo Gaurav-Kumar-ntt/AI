@@ -1,20 +1,9 @@
 # app.py
-# -----------------------------------------
-# This script sends a prompt to an LLM API
-# and prints the model's response.
-# -----------------------------------------
-
-# Import required libraries
-import os                 # To read environment variables
-import requests           # To make HTTP API calls
-from dotenv import load_dotenv   # To load variables from .env file
+import os
+import requests
+from dotenv import load_dotenv
 
 
-# -----------------------------------------
-# STEP 1: Load environment variables
-# -----------------------------------------
-# This reads the .env file and loads values
-# like API key, API URL, and model name
 load_dotenv()
 
 API_KEY = os.getenv("LLM_API_KEY")
@@ -22,8 +11,6 @@ API_URL = os.getenv("LLM_API_URL")
 MODEL = os.getenv("LLM_MODEL")
 
 
-    
-# -----------------------------------------
 def call_llm(messages):
 
     headers = {
@@ -50,12 +37,10 @@ def main():
     print("\n=== AI Chatbot ===")
     print("Type 'exit' to end the conversation\n")
 
-    # System role prompt
     messages = [
-        {
-            "role": "system",
-            "content": "You are a helpful AI engineering assistant that explains concepts clearly."
-        }
+        {"role": "system", "content": "You are an AI tutor explaining concepts to beginners."},
+        {"role": "system", "content": "You are an AI startup advisor helping founders build AI products."},
+        {"role": "system", "content": "You are a technical writer explaining AI engineering concepts clearly."}
     ]
 
     while True:
@@ -70,6 +55,10 @@ def main():
             "role": "user",
             "content": user_input
         })
+
+        # Limit memory
+        if len(messages) > 10:
+            messages = messages[-10:]
 
         response = call_llm(messages)
 
