@@ -1,0 +1,227 @@
+Step 1 — Install Required Libraries
+
+Install the required packages.
+
+pip install requests python-dotenv
+
+
+These libraries allow you to:
+
+call web APIs
+
+connect to an LLM
+
+manage API keys securely
+
+Step 2 — Configure Environment Variables
+
+Open your .env file and add your API credentials.
+
+Example:
+
+LLM_API_KEY=your_llm_key
+LLM_API_URL=https://your-llm-api-endpoint
+LLM_MODEL=your-model-name
+
+SEARCH_API_KEY=your_search_api_key
+SEARCH_API_URL=https://api.searchprovider.com/search
+
+
+These variables allow the program to access:
+
+the LLM API
+
+the web search API
+
+Step 3 — Create the Web Search Tool
+
+Create a file called:
+
+search.py
+
+
+Add the following code.
+
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SEARCH_API_KEY = os.getenv("SEARCH_API_KEY")
+SEARCH_API_URL = os.getenv("SEARCH_API_URL")
+
+
+def web_search(query, num_results=5):
+
+    params = {
+        "q": query,
+        "num": num_results,
+        "api_key": SEARCH_API_KEY
+    }
+
+    response = requests.get(SEARCH_API_URL, params=params)
+
+    data = response.json()
+
+    results = []
+
+    for item in data.get("results", []):
+        results.append({
+            "title": item.get("title"),
+            "snippet": item.get("snippet"),
+            "link": item.get("link")
+        })
+
+    return results
+
+
+This function sends a query to a search API and retrieves the top results.
+
+Each result includes:
+
+title
+
+summary snippet
+
+source link
+
+Step 4 — Create the Summarization Module
+
+Create another file:
+
+summarize.py
+
+
+Add the following code.
+
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("LLM_API_KEY")
+API_URL = os.getenv("LLM_API_URL")
+MODEL = os.getenv("LLM_MODEL")
+
+
+def summarize_research(query, search_results):
+
+    context = ""
+
+    for result in search_results:
+        context += f"""
+Title: {result['title']}
+Summary: {result['snippet']}
+Source: {result['link']}
+
+"""
+
+    prompt = f"""
+You are an AI research assistant.
+
+Using the following search results, answer the user's question.
+
+Question:
+{query}
+
+Search Results:
+{context}
+
+Provide a clear research summary with key insights.
+"""
+
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": MODEL,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    response = requests.post(API_URL, headers=headers, json=payload)
+
+    data = response.json()
+
+    return data["choices"][0]["message"]["content"]
+
+
+This module takes the search results and asks the LLM to summarize the findings.
+
+Step 5 — Build the Research Assistant
+
+Now create the main application.
+
+Open:
+
+app.py
+
+
+Add the following code.
+
+from search import web_search
+from summarize import summarize_research
+
+
+def main():
+
+    print("\n=== AI Research Assistant ===\n")
+
+    while True:
+
+        query = input("Enter research question (or type 'exit'): ")
+
+        if query.lower() == "exit":
+            break
+
+        print("\nSearching the web...\n")
+
+        results = web_search(query)
+
+        print("Summarizing results...\n")
+
+        summary = summarize_research(query, results)
+
+        print("\n=== Research Summary ===\n")
+        print(summary)
+
+
+if __name__ == "__main__":
+    main()
+
+
+Step 6 — Run the Research Assistant
+
+Run your program.
+
+python app.py
+
+
+Example interaction:
+
+=== AI Research Assistant ===
+
+
+Enter research question:
+What are the latest trends in AI startups?
+
+
+The system will:
+
+search the web
+
+retrieve relevant sources
+
+summarize the findings
+
+Example output:
+
+AI startup trends include increased investment in generative AI,
+AI infrastructure platforms, and vertical AI solutions in healthcare,
+finance, and cybersecurity. Many startups are also focusing on
+agent-based automation and enterprise copilots.
