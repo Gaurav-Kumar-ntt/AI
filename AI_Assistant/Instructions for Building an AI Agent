@@ -1,0 +1,248 @@
+Step 1 — Install Required Libraries
+
+Install the required dependencies.
+
+pip install requests python-dotenv
+
+
+These libraries allow the agent to:
+
+call APIs
+
+access environment variables
+
+interact with LLMs
+
+Step 2 — Define the Tools
+
+Agents perform tasks using tools.
+
+Create a file:
+
+tools.py
+
+
+Add the following code.
+
+from search import web_search
+
+
+def search_tool(query):
+
+    results = web_search(query)
+
+    return results
+
+
+This tool allows the agent to search the web.
+
+You can add more tools later, such as:
+
+database search
+
+document retrieval
+
+code execution
+
+Step 3 — Create the Agent Logic
+
+Create a file:
+
+agent.py
+
+
+Add the following code.
+
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("LLM_API_KEY")
+API_URL = os.getenv("LLM_API_URL")
+MODEL = os.getenv("LLM_MODEL")
+
+
+def call_llm(messages):
+
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": MODEL,
+        "messages": messages,
+        "temperature": 0.7
+    }
+
+    response = requests.post(API_URL, headers=headers, json=payload)
+
+    data = response.json()
+
+    return data["choices"][0]["message"]["content"]
+
+
+This function sends prompts to the LLM.
+
+Step 4 — Add the Planning Function
+
+Agents begin by planning the task.
+
+Add this function to agent.py.
+
+def create_plan(task):
+
+    prompt = f"""
+You are an AI agent.
+
+Break the following task into steps.
+
+Task:
+{task}
+
+Return a numbered list of steps.
+"""
+
+    messages = [
+        {"role": "user", "content": prompt}
+    ]
+
+    return call_llm(messages)
+
+
+Example output:
+
+1. Search for information about AI startups
+2. Identify major trends
+3. Summarize market insights
+4. Produce a final report
+
+
+Step 5 — Execute the Plan
+
+Next, the agent will execute the steps.
+
+Add this function.
+
+def execute_task(task):
+
+    plan = create_plan(task)
+
+    prompt = f"""
+You are an AI research agent.
+
+Task:
+{task}
+
+Plan:
+{plan}
+
+Use available information to complete the task and produce a detailed report.
+"""
+
+    messages = [
+        {"role": "user", "content": prompt}
+    ]
+
+    result = call_llm(messages)
+
+    return plan, result
+
+
+This simple version allows the agent to:
+
+generate a plan
+
+produce a final answer
+
+More advanced agents will call tools between steps.
+
+Step 6 — Create the Agent Interface
+
+Create the main application file.
+
+app.py
+
+
+Add the following code.
+
+from agent import execute_task
+
+
+def main():
+
+    print("\n=== AI Research Agent ===\n")
+
+    while True:
+
+        task = input("Enter a task (or type 'exit'): ")
+
+        if task.lower() == "exit":
+            break
+
+        print("\nPlanning task...\n")
+
+        plan, result = execute_task(task)
+
+        print("\n=== Agent Plan ===\n")
+        print(plan)
+
+        print("\n=== Agent Result ===\n")
+        print(result)
+
+
+if __name__ == "__main__":
+    main()
+
+
+Step 7 — Run the Agent
+
+Run the program:
+
+python app.py
+
+
+Example interaction:
+
+=== AI Research Agent ===
+
+
+Enter a task:
+Analyze the AI startup market
+
+
+Example output:
+
+=== Agent Plan ===
+
+1. Search for information about AI startups
+2. Identify major trends
+3. Analyze market growth
+4. Produce a summary report
+
+
+=== Agent Result ===
+
+The AI startup ecosystem has experienced rapid growth in recent years...
+
+
+How the Agent Works
+
+Your agent performs three main steps.
+
+1. Receive a task
+
+Example:
+
+Analyze the AI startup market.
+
+
+2. Generate a plan
+
+The model breaks the task into steps.
+
+3. Execute the plan
+
+The model uses reasoning and available tools to produce the result.
