@@ -52,6 +52,88 @@ LLM_MODEL=your-model-name
 
 
 
+###################################################################################################################################
+Build a chatbot that answers questions from documents.
+
+Steps:
+
+* Upload PDF
+
+* Chunk text
+
+* Generate embeddings
+
+* Store in vector database
+
+* Retrieve context
+
+* Generate answer
+
+In this exercise, you will build an AI system that can answer questions based on documents.
+
+Instead of relying only on the model’s training data, your application will retrieve information from uploaded PDFs and use that information to generate answers.
+
+This architecture is called Retrieval Augmented Generation (RAG) and is widely used in production AI systems such as:
+
+enterprise knowledge assistants
+
+document search systems
+
+customer support bots
+
+research assistants
+
+Step 1 — Install Required Libraries
+
+Install the required Python libraries.
+
+pip install pypdf sentence-transformers faiss-cpu requests python-dotenv
+
+ow RAG Works
+
+Your system now performs the following pipeline:
+
+1. Document ingestion
+
+PDF → extracted text
+
+2. Chunking
+
+Large document → smaller segments
+
+3. Embeddings
+
+Text → vector representation
+
+4. Vector database
+
+Vectors stored for fast search
+
+5. Retrieval
+
+Relevant chunks selected
+
+6. Generation
+
+LLM generates answer using retrieved context
+
+Why RAG Is Important
+
+RAG solves several major problems with LLMs.
+
+Up-to-date information
+
+The model can access new documents.
+
+Domain knowledge
+
+The model can answer questions about company data.
+
+Reduced hallucinations
+
+The model answers using actual document context.
+
+
 
 
 
