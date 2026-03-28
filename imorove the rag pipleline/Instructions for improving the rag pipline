@@ -1,0 +1,196 @@
+Step 1 — Improve Chunking
+
+Previously, your system used simple word-based chunking.
+
+Example:
+
+def chunk_text(text, chunk_size=500):
+
+
+This works, but it ignores sentence boundaries, which can break ideas in the middle.
+
+We will improve this by adding overlapping chunks.
+
+Overlapping chunks help preserve context between segments.
+
+Update the Chunking Function
+
+Open loader.py and replace the chunking function with:
+
+def chunk_text(text, chunk_size=300, overlap=50):
+
+    words = text.split()
+
+    chunks = []
+
+    start = 0
+
+    while start < len(words):
+
+        end = start + chunk_size
+
+        chunk = " ".join(words[start:end])
+
+        chunks.append(chunk)
+
+        start += chunk_size - overlap
+
+    return chunks
+
+
+Why Overlapping Chunks Help
+
+Without overlap:
+
+Chunk 1: introduction to machine learning and neural
+Chunk 2: networks used in computer vision systems
+
+
+Important context may be lost.
+
+With overlap:
+
+Chunk 1: introduction to machine learning and neural networks
+Chunk 2: neural networks used in computer vision systems
+
+
+Now the system preserves context.
+
+Step 2 — Improve Retrieval (Top-K Search)
+
+Previously, your system retrieved 3 chunks.
+
+Example:
+
+retrieve_chunks(query, chunks, index, k=3)
+
+
+However, sometimes the best answer requires more context.
+
+We will improve retrieval by testing different values of k.
+
+Update Retrieval Function
+
+Open rag.py and update the function.
+
+def retrieve_chunks(query, chunks, index, k=5):
+
+    query_embedding = model.encode([query])
+
+    distances, indices = index.search(query_embedding, k)
+
+    results = []
+
+    for i in indices[0]:
+        results.append(chunks[i])
+
+    return results
+
+
+Now the system retrieves 5 relevant chunks instead of 3.
+
+Experiment with Different Values
+
+Try different retrieval values:
+
+k = 3
+k = 5
+k = 8
+
+
+Too small → missing information
+Too large → too much irrelevant text
+
+Most production systems use 3–8 chunks.
+
+Step 3 — Improve Context Formatting
+
+Previously, your prompt simply inserted raw context.
+
+Example:
+
+Context:
+{context}
+
+Question:
+{question}
+
+
+This works, but the model may still hallucinate.
+
+We can improve this by giving clearer instructions.
+
+Improved Prompt Template
+
+Update the prompt inside app.py.
+
+Replace the prompt with:
+
+prompt = f"""
+You are an AI assistant that answers questions using the provided document context.
+
+Only use the information from the context below.
+
+If the answer cannot be found in the context, say:
+"I could not find the answer in the provided document."
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer clearly and concisely.
+"""
+
+
+Why This Prompt Is Better
+
+This prompt improves reliability because it:
+
+instructs the model to use only the provided context
+
+prevents hallucinated answers
+
+encourages clear responses
+
+Step 4 — Format Retrieved Context
+
+Instead of sending raw chunks, label them clearly.
+
+Update the context creation in app.py.
+
+Replace:
+
+context = "\n".join(context_chunks)
+
+
+With:
+
+context = ""
+
+for i, chunk in enumerate(context_chunks):
+    context += f"\nDocument Section {i+1}:\n{chunk}\n"
+
+
+This makes the context easier for the model to interpret.
+
+Step 5 — Run the Improved System
+
+Run the program again:
+
+python app.py
+
+
+Example interaction:
+
+Question: What are the applications of machine learning?
+
+
+The system will:
+
+retrieve the most relevant chunks
+
+format them as structured context
+
+generate an answer using that information
